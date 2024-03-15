@@ -129,8 +129,11 @@ share() { local share="$1" path="$2" browsable="${3:-yes}" ro="${4:-yes}" \
         echo "Temporary Items/Thumbs.db/" >>$file
         echo "   delete veto files = yes" >>$file
     }
-    [[ ${users:-""} && ! ${users:-""} == all ]] &&
+    [[ ${users:-""} && ! ${users:-""} == all ]] && {
         echo "   valid users = $(tr ',' ' ' <<< $users)" >>$file
+        echo "   force group = $(tr ',' ' ' <<< $users)" >>$file
+        echo "   force user = $(tr ',' ' ' <<< $users)" >>$file
+    }
     [[ ${admins:-""} && ! ${admins:-""} =~ none ]] &&
         echo "   admin users = $(tr ',' ' ' <<< $admins)" >>$file
     [[ ${writelist:-""} && ! ${writelist:-""} =~ none ]] &&
@@ -292,6 +295,6 @@ elif [[ $# -ge 1 ]]; then
 elif ps -ef | egrep -v grep | grep -q smbd; then
     echo "Service already running, please restart container to apply changes"
 else
-    [[ ${NMBD:-""} ]] && ionice -c 3 nmbd -D
-    exec ionice -c 3 smbd -FS --no-process-group </dev/null
+    [[ ${NMBD:-""} ]] && ionice -c 3 nmbd -D --debuglevel=1
+    exec ionice -c 3 smbd --foreground --debug-stdout --debuglevel=1 --no-process-group </dev/null
 fi
